@@ -162,10 +162,34 @@ gmx mdrun -v -s md_10ns.tpr -deffnm md_10ns -nt 12
 
 **Outputs:** trajectory (`md_0_1.xtc`), energy file (`md_0_1.edr`), and log file.
 
+## Step 7: Post‑processing and analysis
+<p align="justify">After the production MD run, the trajectory may contain artifacts due to periodic boundary conditions (PBC). Molecules can diffuse across box boundaries, making them appear “broken” or “jumping”. The first step is to correct this by centering the protein and removing PBC jumps.</p>
 
+### 7.1 Remove periodic boundary effects
 
+```bash
+gmx trjconv -s md_10ns.tpr -f md_10ns.xtc -o md_10ns_noPBC.xtc -pbc mol -center
+```
 
+During execution you will be prompted twice:
 
+- Select group for centering – choose the protein (typically group 1).
+- Select group for output – choose the system (group 0).
+
+This command wraps all molecules into the unit cell (`-pbc mol`) and centers the protein in the box (`-center`). The output trajectory `md_10ns_noPBC.xtc` is ready for analysis.
+
+> Tip: For large trajectories, you can use `-ur` compact or `-pbc nojump` instead of `-pbc mol` depending on your needs. See the (GROMACS trjconv documentation)[https://manual.gromacs.org/current/onlinehelp/gmx-trjconv.html] for details.
+ 
+### 7.2 Common structural analyses
+All analyses below use the corrected trajectory (`md_10ns_noPBC.xtc`) and the run input file (`md_10ns.tpr`).
+
+### 7.2.1 RMSD – Root Mean Square Deviation
+
+Measures how much the protein structure deviates from a reference (usually the starting structure) over time.
+
+```bash
+gmx rms -s md_0_1.tpr -f md_0_1_noPBC.xtc -o RMSD.xvg -tu ns
+```
 
 
 
