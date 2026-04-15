@@ -178,7 +178,7 @@ During execution you will be prompted twice:
 
 This command wraps all molecules into the unit cell (`-pbc mol`) and centers the protein in the box (`-center`). The output trajectory `md_10ns_noPBC.xtc` is ready for analysis.
 
-> Tip: For large trajectories, you can use `-ur` compact or `-pbc nojump` instead of `-pbc mol` depending on your needs. See the (GROMACS trjconv documentation)[https://manual.gromacs.org/current/onlinehelp/gmx-trjconv.html] for details.
+> Tip: For large trajectories, you can use `-ur` compact or `-pbc nojump` instead of `-pbc mol` depending on your needs. See the [GROMACS trjconv documentation](https://manual.gromacs.org/current/onlinehelp/gmx-trjconv.html) for details.
  
 ### 7.2 Common structural analyses
 All analyses below use the corrected trajectory (`md_10ns_noPBC.xtc`) and the run input file (`md_10ns.tpr`).
@@ -188,11 +188,70 @@ All analyses below use the corrected trajectory (`md_10ns_noPBC.xtc`) and the ru
 Measures how much the protein structure deviates from a reference (usually the starting structure) over time.
 
 ```bash
-gmx rms -s md_0_1.tpr -f md_0_1_noPBC.xtc -o RMSD.xvg -tu ns
+gmx rms -s md_10ns.tpr -f md_10ns_noPBC.xtc -o RMSD.xvg -tu ns
+```
+At the prompts:
+- For least squares fit – choose 4 (Backbone)
+- For RMSD calculation – choose 4 (Backbone)
+
+**Output:** `RMSD.xvg` (RMSD in `nm` vs. time in `ns`)
+
+### 7.2.2 Radius of gyration (rGyr)
+Indicates the compactness of the protein.
+
+```bash
+gmx gyrate -s md_10ns.tpr -f md_10ns_noPBC.xtc -o gyrate.xvg
 ```
 
+At prompt:
+- Select group – choose 1 (Protein)
 
+**Output:** `gyrate.xvg` (radius of gyration in `nm`)
 
+### 7.2.3 RMSF – Root Mean Square Fluctuation
+Per‑residue flexibility (requires an index file with residue numbers).
+
+```bash
+gmx rmsf -s md_10ns.tpr -f md_10ns_noPBC.xtc -o rmsf.xvg -res
+```
+
+At prompt:
+- Select group for fitting – usually 4 (Backbone)
+- Select group for RMSF – 4 (Backbone) or 1 (Protein) – use `-res` to get per‑residue output.
+
+**Output:** `rmsf.xvg` (RMSF in `nm` per residue)
+
+### 7.2.4 SASA – Solvent Accessible Surface Area
+Measures the surface area exposed to solvent.
+
+```bash
+gmx sasa -s md_10ns.tpr -f md_10ns_noPBC.xtc -o sasa.xvg -or resarea.xvg
+```
+At prompt:
+- Select group – 1 (Protein)
+
+**Outputs:**
+- `sasa.xvg` – total SASA over time (`nm²`)
+- `resarea.xvg` – residue‑wise SASA
+
+### 7.3 Automated plotting and advanced analysis with Dynamics‑Visualizer
+
+Instead of manually plotting each `.xvg` file, you can use the **[Dynamics‑Visualizer](https://github.com/usman4373/Dynamics-Visualizer)** – a Streamlit‑based app that automates post‑MD analysis and visualization for GROMACS trajectories.
+
+#### What it does
+
+- **Standard analyses** – Reads `.xvg` files (RMSD, RMSF, SASA, radius of gyration) and produces publication‑ready time‑series plots.
+- **Principal Component Analysis (PCA)** – Computes and plots PCA for protein‑only or protein‑ligand systems with time‑based colour bars.
+- **Dynamic Cross‑Correlation Matrix (DCCM)** – Generates heatmaps showing correlated motions between residues (and ligand, if present).
+- **Trajectory visualizer** – Extracts frames from your `.xtc` trajectory, renders PNGs using PyMOL, and assembles MP4 videos of the simulation.
+
+#### How to use it
+
+1. **Install** the tool (see [its README](https://github.com/usman4373/Dynamics-Visualizer) for conda/pip instructions, including PyMOL).
+2. **Prepare your data** – Use the **centered trajectory** (`md_10ns_noPBC.xtc`) and the run input file (`md_10ns.tpr`) from Step 7.1.
+3. **Run the app**:
+   ```bash
+   streamlit run app.py
 
 ## Notes
 - The `.mdp` files (`ions.mdp`, `minim.mdp`, `nvt.mdp`, `npt.mdp`, `md.mdp`) contain simulation parameters. They must match the force field and water model you selected. Obtain them from a trusted tutorial or adjust accordingly.
