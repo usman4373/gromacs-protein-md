@@ -94,8 +94,8 @@ gmx mdrun -v -s em.tpr -deffnm em -nb gpu -pme gpu
 |----------|--------|
 | `-v`     | Verbose output |
 | `-deffnm`| Base name for output files (e.g., em.gro, em.edr, etc.) |
-| `-nb`|  Non-bonded interactions |
-| `-pme`| Particle Mesh Ewald - method for long-range electrostatic interactions |
+| `-nb`|  Runs non-bonded interactions on GPU |
+| `-pme`| Runs long-range electrostatics (PME) on GPU |
 
 **Outputs:** `em.gro`, `em.edr`, `em.log`, `em.trr`
 
@@ -178,6 +178,18 @@ Execute the simulation (GPU acceleration shown; adapt as needed):
 gmx mdrun -v -s md_10ns.tpr -deffnm md_10ns -ntomp 12 -pin on -nb gpu -pme gpu -bonded gpu -update gpu
 # If resuming simulation then add -cpi md_10ns.cpt file after -s md_10ns.tpr
 ```
+
+| Option       | Meaning |
+|--------------|--------|
+| `-v`         | Verbose output during simulation |
+| `-s`         | Input `.tpr` run input file |
+| `-deffnm`    | Base name for all output files |
+| `-ntomp`     | Number of OpenMP threads per MPI rank |
+| `-pin on`    | Pins threads to CPU cores for better performance |
+| `-nb gpu`    | Runs non-bonded interactions on GPU |
+| `-pme gpu`   | Runs long-range electrostatics (PME) on GPU |
+| `-bonded gpu`| Offloads bonded interactions to GPU |
+| `-update gpu`| Performs constraint/coordinate updates on GPU |
 
 If you don't have a GPU, use CPU threads (e.g., 12 threads):
 
