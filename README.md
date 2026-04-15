@@ -120,6 +120,47 @@ gmx grompp -f nvt.mdp -c em.gro -r em.gro -p topol.top -o nvt.tpr
 gmx mdrun -s nvt.tpr -deffnm nvt
 ```
 
+Check temperature progression:
+
+```bash
+gmx energy -f nvt.edr -o temperature.xvg
+```
+> At the prompt, type `16 0` to select the system temperature.
+
+### 5.2 NPT equilibration (constant pressure)
+
+```bash
+gmx grompp -f npt.mdp -c nvt.gro -r nvt.gro -t nvt.cpt -p topol.top -o npt.tpr
+gmx mdrun -v -s npt.tpr -deffnm npt
+```
+
+Check pressure and density:
+
+```bash
+gmx energy -f npt.edr -o pressure.xvg   # type 18 0
+gmx energy -f npt.edr -o density.xvg    # type 24 0
+```
+
+## Step 6: Production MD run
+- Run the final MD simulation using the `md.mdp` parameter file.
+
+```bash
+gmx grompp -f md.mdp -c npt.gro -t npt.cpt -p topol.top -o md_10ns.tpr
+```
+
+Execute the simulation (GPU acceleration shown; adapt as needed):
+
+```bash
+gmx mdrun -v -s md_10ns.tpr -deffnm md_10ns -nb gpu
+```
+
+If you don't have a GPU, use CPU threads (e.g., 12 threads):
+
+```bash
+gmx mdrun -v -s md_10ns.tpr -deffnm md_10ns -nt 12
+```
+
+**Outputs:** trajectory (`md_0_1.xtc`), energy file (`md_0_1.edr`), and log file.
 
 
 
@@ -129,9 +170,10 @@ gmx mdrun -s nvt.tpr -deffnm nvt
 
 
 
-
-
-
+## Notes
+- The `.mdp` files (`ions.mdp`, `minim.mdp`, `nvt.mdp`, `npt.mdp`, `md.mdp`) contain simulation parameters. They must match the force field and water model you selected. Obtain them from a trusted tutorial or adjust accordingly.
+- Always verify group indices when using gmx genion or other interactive modules (gmx energy, gmx rms). Use `gmx` help groups to list groups in a `.tpr` file.
+- For large systems, consider using `-ntmpi` and `-nt` to optimise parallel performance.
 
 
 
