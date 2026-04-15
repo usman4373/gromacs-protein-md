@@ -279,9 +279,9 @@ Instead of manually plotting each `.xvg` file, you can use the **[Dynamics‑Vis
    streamlit run app.py
 
 ## Notes
-- The `.mdp` files (`ions.mdp`, `minim.mdp`, `nvt.mdp`, `npt.mdp`, `md.mdp`) contain simulation parameters. They must match the force field and water model you selected. Obtain them from a trusted tutorial or adjust accordingly.
-- Always verify group indices when using gmx genion or other interactive modules (gmx energy, gmx rms). Use `gmx` help groups to list groups in a `.tpr` file.
-- For large systems, consider using `-ntmpi` and `-nt` to optimise parallel performance.
+- The `.mdp` files (`ions.mdp`, `minim.mdp`, `nvt.mdp`, `npt.mdp`, `md.mdp`) contain simulation parameters. They must match the force field and water model you selected. All `.mdp` files are provided in this repository
+- Always verify group indices when using gmx genion or other interactive modules (gmx energy, gmx rms). Use `gmx` help groups to list groups in a `.tpr` file
+- For large systems, consider using `-ntmpi` and `-nt` to optimise parallel performance
 
 
 
