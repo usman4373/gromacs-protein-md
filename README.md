@@ -29,7 +29,7 @@ gmx pdb2gmx -f protein.pdb -o protein_processed.gro -water tip3p
 
 ## Step 2: Build the system (box + solvation)
 
-#### 2.1 Define the simulation box
+### 2.1 Define the simulation box
 - Center the protein and set a distance of 1.0 nm from the box edge.
 
 ```bash
@@ -42,7 +42,7 @@ gmx editconf -f protein_processed.gro -o protein_newbox.gro -c -d 1.0 -bt cubic
 | `-d`   | Minimum distance (nm) from protein to box edge |
 | `-bt`  | Box type (cubic, triclinic, etc.) |
 
-#### 2.2 Solvate the system
+### 2.2 Solvate the system
 - Fill the box with water molecules (using the SPC216 water model).
 
 ```bash
@@ -81,13 +81,13 @@ gmx genion -s ions.tpr -o protein_solv_ions.gro -p topol.top -pname NA -nname CL
 ## Step 4: Energy minimization
 - Energy minimization removes bad contacts and relaxes the system.
 
-#### 4.1 Prepare the minimization input
+### 4.1 Prepare the minimization input
 
 ```bash
 gmx grompp -f minim.mdp -c protein_solv_ions.gro -p topol.top -o em.tpr
 ```
 
-#### 4.2 Run the minimization
+### 4.2 Run the minimization
 
 ```bash
 gmx mdrun -v -s em.tpr -deffnm em
@@ -100,13 +100,25 @@ gmx mdrun -v -s em.tpr -deffnm em
 
 **Outputs:** `em.gro`, `em.edr`, `em.log`, `em.trr`
 
+### 4.3 Verify minimization success
+- Potential energy should be negative and on the order of `105105–106106 kJ/mol`.
+- Maximum force should be no greater than `1000 kJ mol⁻¹ nm⁻¹` (check `em.log`).
+- Analyze the potential energy over minimization steps:
 
+```bash
+gmx energy -f em.edr -o potential.xvg
+```
+> At the prompt, type `10 0` to select potential energy (term 10) and exit.
 
+## Step 5: Equilibration
+- Equilibration stabilizes temperature (NVT) and then pressure (NPT).
 
+### 5.1 NVT equilibration (constant temperature)
 
-
-
-
+```bash
+gmx grompp -f nvt.mdp -c em.gro -r em.gro -p topol.top -o nvt.tpr
+gmx mdrun -s nvt.tpr -deffnm nvt
+```
 
 
 
