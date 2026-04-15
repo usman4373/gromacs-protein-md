@@ -20,3 +20,43 @@ gmx pdb2gmx -f protein.pdb -o protein_processed.gro -water tip3p
 ```
 
 > **Note:** When running `pdb2gmx` you will be prompted to choose a force field (e.g., CHARMM, Amber, OPLS). Select the one appropriate for your system.
+
+**Outputs:**
+
+- topol.top – system topology
+- posre.itp – position restraints for the protein
+- protein_processed.gro – processed coordinate file
+
+## Step 2: Build the system (box + solvation)
+
+#### 2.1 Define the simulation box
+- Center the protein and set a distance of 1.0 nm from the box edge.
+
+```bash
+gmx editconf -f protein_processed.gro -o protein_newbox.gro -c -d 1.0 -bt cubic
+```
+
+| Option | Meaning |
+|--------|--------|
+| `-c`   | Center the protein in the box |
+| `-d`   | Minimum distance (nm) from protein to box edge |
+| `-bt`  | Box type (cubic, triclinic, etc.) |
+
+#### 2.2 Solvate the system
+- Fill the box with water molecules (using the SPC216 water model).
+
+```bash
+gmx solvate -cp protein_newbox.gro -cs spc216.gro -o protein_solv.gro -p topol.top
+```
+
+
+
+
+
+
+
+
+
+
+
+
