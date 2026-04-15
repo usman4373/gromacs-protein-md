@@ -16,7 +16,7 @@
 Generate the topology, position restraint file, and a processed structure file.
 
 ```bash
-gmx pdb2gmx -f protein.pdb -o protein_processed.gro -water tip3p
+gmx pdb2gmx -f protein.pdb -o protein_processed.gro -water spce
 ```
 
 > **Note:** When running `pdb2gmx` you will be prompted to choose a force field (e.g., CHARMM, Amber, OPLS). Select the one appropriate for your system.
@@ -61,12 +61,9 @@ gmx solvate -cp protein_newbox.gro -cs spc216.gro -o protein_solv.gro -p topol.t
 
 ```bash
 gmx grompp -f ions.mdp -c protein_solv.gro -p topol.top -o ions.tpr
-```
-- Now add ions, replacing water molecules. When prompted, select the SOL group (typically group number 13) – this ensures ions are placed only in the solvent, not inside the protein.
-
-```bash
 gmx genion -s ions.tpr -o protein_solv_ions.gro -p topol.top -pname NA -nname CL -neutral
 ```
+- Now add ions, replacing water molecules. When prompted, select the SOL group (typically group number 13) – this ensures ions are placed only in the solvent, not inside the protein.
 
 | Option   | Meaning |
 |----------|--------|
@@ -90,13 +87,15 @@ gmx grompp -f minim.mdp -c protein_solv_ions.gro -p topol.top -o em.tpr
 ### 4.2 Run the minimization
 
 ```bash
-gmx mdrun -v -s em.tpr -deffnm em
+gmx mdrun -v -s em.tpr -deffnm em -nb gpu -pme gpu
 ```
 
 | Option   | Meaning |
 |----------|--------|
 | `-v`     | Verbose output |
 | `-deffnm`| Base name for output files (e.g., em.gro, em.edr, etc.) |
+| `-nb`|  Non-bonded interactions |
+| `-pme`| Particle Mesh Ewald - method for long-range electrostatic interactions |
 
 **Outputs:** `em.gro`, `em.edr`, `em.log`, `em.trr`
 
@@ -131,7 +130,7 @@ gmx energy -f nvt.edr -o temperature.xvg
 
 ```bash
 gmx grompp -f npt.mdp -c nvt.gro -r nvt.gro -t nvt.cpt -p topol.top -o npt.tpr
-gmx mdrun -v -s npt.tpr -deffnm npt
+gmx mdrun -v -s npt.tpr -deffnm npt -nb gpu -pme gpu
 ```
 
 Check pressure and density:
@@ -176,7 +175,8 @@ gmx grompp -f md.mdp -c npt.gro -t npt.cpt -p topol.top -o md_10ns.tpr
 Execute the simulation (GPU acceleration shown; adapt as needed):
 
 ```bash
-gmx mdrun -v -s md_10ns.tpr -deffnm md_10ns -nb gpu
+gmx mdrun -v -s md_10ns.tpr -deffnm md_10ns -ntomp 12 -pin on -nb gpu -pme gpu -bonded gpu -update gpu
+# If resuming simulation then add -cpi md_10ns.cpt file after -s md_10ns.tpr
 ```
 
 If you don't have a GPU, use CPU threads (e.g., 12 threads):
@@ -185,7 +185,7 @@ If you don't have a GPU, use CPU threads (e.g., 12 threads):
 gmx mdrun -v -s md_10ns.tpr -deffnm md_10ns -nt 12
 ```
 
-**Outputs:** trajectory (`md_0_1.xtc`), energy file (`md_0_1.edr`), and log file.
+**Outputs:** trajectory (`md_10ns.xtc`), energy file (`md_10ns.edr`), and log file.
 
 ## Step 7: Post‑processing and analysis
 <p align="justify">After the production MD run, the trajectory may contain artifacts due to periodic boundary conditions (PBC). Molecules can diffuse across box boundaries, making them appear “broken” or “jumping”. The first step is to correct this by centering the protein and removing PBC jumps.</p>
