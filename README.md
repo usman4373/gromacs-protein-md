@@ -143,7 +143,32 @@ gmx energy -f npt.edr -o density.xvg    # type 24 0
 
 ## Step 6: Production MD run
 - Run the final MD simulation using the `md.mdp` parameter file.
+- Before running simulation, adjust `nsteps` parameter in `md.mdp` parameter file to change the simulation time:
 
+Simulation time = nsteps × dt.
+- For 10 ns:
+    - nsteps = 5000000 → 5 000 000 × 0.002 ps = 10 000 ps = 10 ns.
+
+ - For 50 ns:
+    - nsteps = 25000000 → 25 000 000 × 0.002 ps = 50 000 ps = 50 ns.
+
+Example modification for `50 ns`
+- In your `.mdp` file, change only the `nsteps` line:
+
+```
+; Run parameters
+integrator              = md
+nsteps                  = 25000000   ; 50 ns (25M steps × 0.002 ps)
+dt                      = 0.002
+```
+
+- All other parameters (output frequency, thermostats, etc.) can remain the same.
+- However, you may also want to adjust output intervals (`nstenergy`, `nstxout-compressed`, etc.) to avoid excessively large output files. For example, keeping `nstxout-compressed = 5000` writes a frame every `10 ps`, giving `5000` frames for `50 ns`.
+
+> **Tip:** If you change `dt`, the simulation time changes proportionally, but `2 fs` is standard for atomistic MD. Changing `dt` may require adjusting constraints and neighbour list settings.
+
+- Now, perform MD run:
+- 
 ```bash
 gmx grompp -f md.mdp -c npt.gro -t npt.cpt -p topol.top -o md_10ns.tpr
 ```
