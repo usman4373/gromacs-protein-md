@@ -49,6 +49,77 @@ gmx editconf -f protein_processed.gro -o protein_newbox.gro -c -d 1.0 -bt cubic
 gmx solvate -cp protein_newbox.gro -cs spc216.gro -o protein_solv.gro -p topol.top
 ```
 
+| Option |	Meaning |
+|--------|----------|
+| `-cp`  | Protein configuration file |
+| `-cs`  | Solvent configuration file |
+
+**Output:** protein_solv.gro (solvated system) and updated topol.top.
+
+## Step 3: Add ions to neutralize the system
+- First, assemble a `.tpr` file using an `ions.mdp` parameter file.
+
+```bash
+gmx grompp -f ions.mdp -c protein_solv.gro -p topol.top -o ions.tpr
+```
+- Now add ions, replacing water molecules. When prompted, select the SOL group (typically group number 13) – this ensures ions are placed only in the solvent, not inside the protein.
+
+```bash
+gmx genion -s ions.tpr -o protein_solv_ions.gro -p topol.top -pname NA -nname CL -neutral
+```
+
+| Option   | Meaning |
+|----------|--------|
+| `-s`     | Input `.tpr` structure file |
+| `-p`     | Update topology file |
+| `-pname` | Name of positive ion (e.g., NA) |
+| `-nname` | Name of negative ion (e.g., CL) |
+| `-neutral` | Add enough ions to neutralize the system |
+
+**Output:** `protein_solv_ions.gro` (final system with ions) and updated topol.top.
+
+## Step 4: Energy minimization
+- Energy minimization removes bad contacts and relaxes the system.
+
+#### 4.1 Prepare the minimization input
+
+```bash
+gmx grompp -f minim.mdp -c protein_solv_ions.gro -p topol.top -o em.tpr
+```
+
+#### 4.2 Run the minimization
+
+```bash
+gmx mdrun -v -s em.tpr -deffnm em
+```
+
+| Option   | Meaning |
+|----------|--------|
+| `-v`     | Verbose output |
+| `-deffnm`| Base name for output files (e.g., em.gro, em.edr, etc.) |
+
+**Outputs:** `em.gro`, `em.edr`, `em.log`, `em.trr`
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
